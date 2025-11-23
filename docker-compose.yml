@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  api:
+    build: ./api
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./api:/app
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - MASTER_KEY=${MASTER_KEY}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15-alpine
+    # Ports removed for security (internal access only)
+    # ports:
+    #   - "5432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # adminer:
+  #   image: adminer
+  #   restart: always
+  #   ports:
+  #     - 8082:8080
+  #   depends_on:
+  #     - db
+
+  web:
+    build: ./web
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=${VITE_API_URL}
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
